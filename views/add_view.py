@@ -1,13 +1,15 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-                             QFormLayout, QMainWindow, QFileDialog, QMessageBox)
+                             QFormLayout, QMainWindow, QFileDialog, QMessageBox, QDialog)
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from views.main_view import MainFormApp
 from controller.add_ui_controller import addUIController
 import config as cf
+from PyQt5.QtCore import pyqtSignal
 
-class ExampleApp(MainFormApp):
+
+class AddApp(MainFormApp,QDialog):
     model_path: QLineEdit = None
     pn_path: QLineEdit = None
     mpn_path: QLineEdit = None
@@ -21,6 +23,7 @@ class ExampleApp(MainFormApp):
     def __init__(self):
         super().__init__()
         self.add_init()
+
 
     def main_init(self) -> None:
         pass
@@ -112,9 +115,15 @@ class ExampleApp(MainFormApp):
 
 
 
+        # ...
+
+    def some_function_that_closes_add_app(self):
+        # event when user click close this View
+        print("? close ")
+        self.accept()
 def main():
     app = QApplication(sys.argv)
-    ex = ExampleApp()
+    ex = AddApp()
     sys.exit(app.exec_())
 
 
