@@ -11,9 +11,17 @@ class mainUIController:
         self.folder_is_valid:bool = None
 
 
-    def handle_btn_add(self) -> None:
-        # Xử lý sự kiện click ở đây
-        print('handle_btn_add was clicked!')
+    def handle_btn_add(self,callback=None) -> None:
+        try:
+            from views.add_view import AddApp
+            self.add_app = AddApp()
+            self.add_app.show()
+            if callback:
+                callback("êcc")
+        except Exception as e:
+            print(e)
+            if callback:
+                callback("ádasdasd")
 
     def handle_btn_refresh(self) -> None:
         # Xử lý sự kiện click ở đây
