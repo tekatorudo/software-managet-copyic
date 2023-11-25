@@ -101,8 +101,14 @@ class MainFormApp(QWidget):
 
     def button_add(self) -> QPushButton:
         btn = QPushButton('Add New')
-        btn.clicked.connect(self.controller.handle_btn_add)
+        btn.clicked.connect(lambda: self.controller.handle_btn_add(self.on_add_action_completed))
         return btn
+
+    def on_add_action_completed(self, success: str):
+        if success:
+            print("Hành động hoàn thành mà không có lỗi.")
+        else:
+            print("Đã có lỗi xảy ra.")
 
     def button_refresh(self) -> QPushButton:
         btn = QPushButton('Refresh')
@@ -112,6 +118,8 @@ class MainFormApp(QWidget):
     def button_show_folder(self) -> QPushButton:
         btn = QPushButton('Show folder')
         btn.clicked.connect(lambda: self.controller.handle_btn_showfolder(self.full_path))
+
+        print("hiccc")
         return btn
 
     def path_line_input(self) -> QLineEdit:
