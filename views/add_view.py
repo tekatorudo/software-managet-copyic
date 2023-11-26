@@ -9,24 +9,42 @@ import config as cf
 from PyQt5.QtCore import pyqtSignal
 
 
-class AddApp(MainFormApp,QDialog):
+class AddApp(QDialog,MainFormApp):
     model_path: QLineEdit = None
     pn_path: QLineEdit = None
     mpn_path: QLineEdit = None
     location_on_pcb_path: QLineEdit = None
     bin_file_path: QLineEdit = None
     project_checksums_path: QLineEdit = None
+
+
+
     controller: addUIController = addUIController()
     default_folder_path =  cf._path_treeWidget
+    dialog_closed_signal = pyqtSignal()
 
 
+    closed = pyqtSignal()
     def __init__(self):
-        super().__init__()
+        super(MainFormApp,self).__init__()
+
+        super(QDialog,self).__init__()
+        # self.setWindowTitle('Modal Dialog')
+        self.setGeometry(200, 200, 300, 200)
+        self.setModal(True)
         self.add_init()
 
 
     def main_init(self) -> None:
         pass
+
+
+    def closeEvent(self, event):
+        """
+        When this Dialog closed! It had sent a signal to mainUIController
+        """
+        self.dialog_closed_signal.emit()
+        super().closeEvent(event)
 
     def window_curent(self) -> None:
         super().window_curent()
@@ -114,8 +132,6 @@ class AddApp(MainFormApp,QDialog):
 
 
 
-
-        # ...
 
     def some_function_that_closes_add_app(self):
         # event when user click close this View
