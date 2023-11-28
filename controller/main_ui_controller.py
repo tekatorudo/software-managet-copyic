@@ -1,16 +1,18 @@
+import shutil
+
 from PyQt5.QtCore import pyqtSignal
 from modules import log_exception
 import config as cf
 import os
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, \
-    QTreeWidget, QTreeWidgetItem, QMainWindow, QStyle, QMessageBox, QInputDialog
+    QTreeWidget, QTreeWidgetItem, QMainWindow, QStyle, QMessageBox, QInputDialog, QFileDialog
 from PyQt5.QtGui import QIcon
 
 
 class mainUIController:
     dialog_closed_signal = pyqtSignal()
-
+    name_button: str = "All Files (*)"
     def __init__(self):
         self.controller = None
         self.folder_is_valid: bool = None
@@ -44,20 +46,55 @@ class mainUIController:
         if this:
             self.refresh_tree_view(this)
 
-    def handle_btn_showfolder(self, folder_path: str):
+    def handle_btn_showfolder(self,this, folder_path: str):
         """
         :param folder_path: when click to "button_show_folder", the system will go to that "folder_path"
         """
-        if os.path.exists(folder_path):
-            if os.path.isfile(folder_path):
-                # if path is file path
-                folder_path = os.path.dirname(folder_path)
-            else:
-                # if path is folder path
-                folder_path = folder_path
-            os.system(f'explorer "{folder_path}"')
+
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly  # Chỉ cho phép đọc file, không cho phép ghi
+
+        fileDialog = QFileDialog(this)
+        fileDialog.setOptions(options)
+        fileDialog.setFileMode(QFileDialog.ExistingFiles)
+        fileDialog.setNameFilter("All Files (*)")
+
+        if fileDialog.exec_():
+            selectedFiles = fileDialog.selectedFiles()
+            if selectedFiles:
+                # Lấy ra danh sách các file được chọn
+                for file_path in selectedFiles:
+                    # Xử lý file_path ở đây
+                    # Ở đây, chúng ta chỉ in ra tên file đã chọn
+                    print(f'Selected File: {file_path}')
+
+                    # Lưu file vào đường dẫn D:\LDPlayer\test\
+                    destination_folder = r'D:\LDPlayer\test'
+                    file_name = os.path.basename(file_path)
+                    destination_path = os.path.join(destination_folder, file_name)
+
+                    # Kiểm tra nếu file đã tồn tại trong thư mục đích, xoá nó đi trước
+                    if os.path.exists(destination_path):
+                        os.remove(destination_path)
+
+                    # Di chuyển file đến thư mục đích
+                    shutil.move(file_path, destination_path)
+
         else:
-            return 0
+            print('Dialog was canceled.')
+
+    # if os.path.exists(folder_path):
+        #     if os.path.isfile(folder_path):
+        #         # if path is file path
+        #         folder_path = os.path.dirname(folder_path)
+        #     else:
+        #         # if path is folder path
+        #         folder_path = folder_path
+        #     os.system(f'explorer "{folder_path}"')
+        # else:
+        #     return 0
+
+
 
     def populate_tree_with_folder_contents(self, parentItem: QTreeWidgetItem, path: str, folderIcon: QIcon) -> None:
         """
@@ -132,7 +169,7 @@ class mainUIController:
                     new_folder_item.setIcon(0, folder_icon)
 
                     # Gọi lại hàm để nạp nội dung vào folder mới
-                    self.controller.populate_tree_with_folder_contents(new_folder_item, new_folder_path, folder_icon)
+                    self.populate_tree_with_folder_contents(new_folder_item, new_folder_path, folder_icon)
                     selected_item.setExpanded(True)  # Mở rộng item cha để hiển thị item mới
                 else:
                     print("add_new_folder : have no path! check again")

@@ -2,7 +2,7 @@ import os
 import sys
 import config as cf
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, \
-    QTreeWidget, QTreeWidgetItem, QMainWindow, QStyle, QInputDialog, QMessageBox
+    QTreeWidget, QTreeWidgetItem, QMainWindow, QStyle, QInputDialog, QMessageBox, QFileDialog
 from controller.main_ui_controller import mainUIController
 from PyQt5.QtGui import QIcon
 
@@ -10,6 +10,12 @@ from PyQt5.QtGui import QIcon
 class MainFormApp(QWidget):
     tree: QTreeWidget = None
     add_new_button: QPushButton = None
+    open_folder_button: QPushButton = None
+
+    upload_sw_button: QPushButton = None
+    upload_checksum_button: QPushButton = None
+    upload_bin_file_button: QPushButton = None
+    open_folder_button: QPushButton = None
 
     full_path: str = ""
     path_line_edit: QLineEdit = None
@@ -39,17 +45,31 @@ class MainFormApp(QWidget):
         |  tree view  |
         ---------------
         '''
-        layout_top = self.layout_top()
+        layout_path_folder = self.layout_path_folder()
         '''part top include /path_label and path_line_edit and open_folder_button/  '''
         path_label = QLabel('Path:')
-        layout_top.addWidget(path_label)
+        layout_path_folder.addWidget(path_label)
         self.path_line_edit = self.path_line_input()
-        layout_top.addWidget(self.path_line_edit)
-        open_folder_button = self.button_show_folder()
-        layout_top.addWidget(open_folder_button)
+        layout_path_folder.addWidget(self.path_line_edit)
+
 
         '''part middle include /add_button and refresh_button/'''
-        layout_middle = self.layout_middle()
+        layout_upload = self.layout_upload()
+        self.upload_sw_button = self.button_upload_sw()
+        layout_upload.addWidget( self.upload_sw_button)
+
+        self.upload_checksum_button = self.button_upload_checksum()
+        layout_upload.addWidget(self.upload_checksum_button)
+
+        self.upload_bin_file_button = self.button_upload_bin_file()
+        layout_upload.addWidget(self.upload_bin_file_button)
+
+
+        # self.open_folder_button = self.button_show_folder()
+        # layout_path_folder.addWidget(self.open_folder_button)
+
+        '''part middle include /add_button and refresh_button/'''
+        layout_middle = self.layout_add_refresh()
         self.add_new_button = self.button_add()
         layout_middle.addWidget(self.add_new_button)
         refreshButton = self.button_refresh()
@@ -62,7 +82,8 @@ class MainFormApp(QWidget):
 
         '''Main layout'''
         main_layout = QVBoxLayout()
-        main_layout.addLayout(layout_top)
+        main_layout.addLayout(layout_path_folder)
+        main_layout.addLayout(layout_upload)
         main_layout.addLayout(layout_middle)
         main_layout.addLayout(layout_treeview)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -71,15 +92,16 @@ class MainFormApp(QWidget):
         self.setLayout(main_layout)
         self.show()
 
-    def layout_top(self) -> QHBoxLayout:
+    def layout_path_folder(self) -> QHBoxLayout:
         lout = QHBoxLayout()
         return lout
-
-    def layout_middle(self) -> QHBoxLayout:
+    def layout_upload(self) -> QHBoxLayout:
+        lout = QHBoxLayout()
+        return lout
+    def layout_add_refresh(self) -> QHBoxLayout:
         lout = QHBoxLayout()
         lout.setContentsMargins(0, 10, 0, 0)
         return lout
-
     def tree_widget(self) -> QTreeWidget:
         from views.tree_widget import CustomTreeWidget
         tree = CustomTreeWidget()
@@ -93,11 +115,11 @@ class MainFormApp(QWidget):
         folder_icon = QApplication.style().standardIcon(QStyle.SP_DirIcon)
         ddriver_item = QTreeWidgetItem(tree, [cf._path_treeWidget.split('\\')[-1]])
         ddriver_item.setIcon(0, folder_icon)  # set icon folder
+        print("print ddriver_item", ddriver_item)
         self.controller.populate_tree_with_folder_contents(ddriver_item, cf._path_treeWidget, folder_icon)
         # clickListener
         tree.itemClicked.connect(self.on_item_tree_widget_clicked)
         return tree
-
     def on_item_tree_widget_clicked(self, item: QTreeWidgetItem) -> None:
         """
         this function only working in this class! I have no idea :(️
@@ -114,13 +136,14 @@ class MainFormApp(QWidget):
         self.path_line_edit.setText(self.full_path)
     def button_show_folder(self) -> QPushButton:
         btn = QPushButton('Show folder')
-        btn.clicked.connect(lambda: self.controller.handle_btn_showfolder(self.full_path))
+        btn.clicked.connect(lambda: self.controller.handle_btn_showfolder(self, self.full_path))
         print("hiccc")
         return btn
+
     def button_add(self) -> QPushButton:
         btn = QPushButton('Add New', self)
         btn.clicked.connect(lambda: self.controller.add_new_folder(self))
-        btn.setEnabled(False) #only enable when path_line_edit not None
+        btn.setEnabled(False)  # only enable when path_line_edit not None
         return btn
 
     # def on_add_action_completed(self, success: str) -> None:
@@ -137,13 +160,9 @@ class MainFormApp(QWidget):
         btn.clicked.connect(lambda: self.controller.handle_btn_refresh(this=self))
         return btn
 
-
-
     def path_line_input(self) -> QLineEdit:
         pathLineEdit = QLineEdit('FTP://MODEL/ICPN/MPN/LocationOnPCB/Project&checksum/machineID/checksum.txt')
         return pathLineEdit
-
-
 
     def onSelectionChanged(self) -> None:
         '''If selected_item is None (path_line_edit is None) disable add_new_button '''
@@ -152,6 +171,66 @@ class MainFormApp(QWidget):
             self.add_new_button.setEnabled(selected_item is not None)
         except Exception as e:
             print(e)
+
+
+    def button_upload_sw(self) -> QPushButton:
+        btn = QPushButton('Upload Programs 🚗', self)
+        # btn.clicked.connect(lambda: self.controller.add_new_folder(self))
+        # btn.setEnabled(False)  # only enable when path_line_edit not None
+        return btn
+
+    def button_upload_checksum(self) -> QPushButton:
+        btn = QPushButton('Upload Checksum 🚕', self)
+        # btn.clicked.connect(lambda: self.controller.add_new_folder(self))
+        # btn.setEnabled(False)  # only enable when path_line_edit not None
+        return btn
+    def button_upload_bin_file(self) -> QPushButton:
+        btn = QPushButton('Upload Bin file 🚙', self)
+        # btn.clicked.connect(lambda: self.controller.add_new_folder(self))
+        # btn.setEnabled(False)  # only enable when path_line_edit not None
+        btn.clicked.connect(self.showUploadFileDialog)
+
+        return btn
+
+    def showUploadFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly  # Chỉ cho phép đọc file, không cho phép ghi
+
+        fileDialog = QFileDialog(self)
+        fileDialog.setOptions(options)
+        fileDialog.setFileMode(QFileDialog.ExistingFiles)
+        fileDialog.setNameFilter("All Files (*)")
+
+        if fileDialog.exec_():
+            selectedFiles = fileDialog.selectedFiles()
+            if selectedFiles and len(selectedFiles) > 0 and len(selectedFiles) < 5 :  # Đảm bảo bạn đã chọn đúng 2 tệp
+                # Hiển thị hộp thoại xác nhận
+                confirm_box = QMessageBox()
+                confirm_box.setIcon(QMessageBox.Question)
+                confirm_box.setText("Bạn có muốn lưu các tệp đã chọn vào ổ D:// không?")
+                confirm_box.setWindowTitle("Xác nhận")
+                confirm_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+
+                result = confirm_box.exec_()
+
+                if result == QMessageBox.Ok:
+                    for file_path in selectedFiles:
+                        # Lưu file vào ổ D://
+                        destination_folder = 'D:\\'
+                        file_name = os.path.basename(file_path)
+                        destination_path = os.path.join(destination_folder, file_name)
+                        try:
+                            # Di chuyển file đến thư mục đích
+                            os.rename(file_path, destination_path)
+                            print(f'Lưu file {file_name} thành công tại {destination_path}')
+                        except Exception as e:
+                            print(f'Lưu file {file_name} không thành công. Lỗi: {e}')
+                else:
+                    print('Đã huỷ lưu các tệp.')
+            else:
+                print('Vui lòng chọn đúng hai tệp cần tải lên.')
+        else:
+            print('Hộp thoại đã được đóng mà không có tệp nào được chọn.')
 
 
 def main():
