@@ -118,6 +118,9 @@ class MainFormApp(QWidget):
         print("print ddriver_item", ddriver_item)
         self.controller.populate_tree_with_folder_contents(ddriver_item, cf._path_treeWidget, folder_icon)
         # clickListener
+
+        from modules.getdata_modules import GetData
+        GetData().set_model(lst=self.controller.lst_model)
         tree.itemClicked.connect(self.on_item_tree_widget_clicked)
         return tree
     def on_item_tree_widget_clicked(self, item: QTreeWidgetItem) -> None:

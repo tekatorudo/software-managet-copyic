@@ -13,9 +13,11 @@ from PyQt5.QtGui import QIcon
 class mainUIController:
     dialog_closed_signal = pyqtSignal()
     name_button: str = "All Files (*)"
+
     def __init__(self):
         self.controller = None
         self.folder_is_valid: bool = None
+        self.lst_model: list = []
 
     def handle_btn_add(self, this, callback=None) -> None:
         '''
@@ -46,7 +48,7 @@ class mainUIController:
         if this:
             self.refresh_tree_view(this)
 
-    def handle_btn_showfolder(self,this, folder_path: str):
+    def handle_btn_showfolder(self, this, folder_path: str):
         """
         :param folder_path: when click to "button_show_folder", the system will go to that "folder_path"
         """
@@ -84,17 +86,15 @@ class mainUIController:
             print('Dialog was canceled.')
 
     # if os.path.exists(folder_path):
-        #     if os.path.isfile(folder_path):
-        #         # if path is file path
-        #         folder_path = os.path.dirname(folder_path)
-        #     else:
-        #         # if path is folder path
-        #         folder_path = folder_path
-        #     os.system(f'explorer "{folder_path}"')
-        # else:
-        #     return 0
-
-
+    #     if os.path.isfile(folder_path):
+    #         # if path is file path
+    #         folder_path = os.path.dirname(folder_path)
+    #     else:
+    #         # if path is folder path
+    #         folder_path = folder_path
+    #     os.system(f'explorer "{folder_path}"')
+    # else:
+    #     return 0
 
     def populate_tree_with_folder_contents(self, parentItem: QTreeWidgetItem, path: str, folderIcon: QIcon) -> None:
         """
@@ -103,6 +103,8 @@ class mainUIController:
         try:
             for entry in os.listdir(path):
                 full_path = os.path.join(path, entry)
+                # print(full_path)
+                counter = full_path.count("\\")
                 if os.path.isdir(full_path):
                     try:
                         sub_item = QTreeWidgetItem(parentItem, [entry])
@@ -114,13 +116,19 @@ class mainUIController:
                         pass
                 else:
                     QTreeWidgetItem(parentItem, [entry])
+                    if counter > 3:
+                        self.excute_test(full_path)
         except Exception as e:
             log_exception.log_exception(e)
             print("PermissionError 121", e)
 
-    # def closeEvent(self, event):
-    #     self.dialog_closed_signal.emit()
-    #     super().closeEvent(event)
+    def excute_test(self, path: str) -> None:
+        from modules.model.model_test import model
+
+        val: list[str] = path.split("\\")[2:]
+        if len(val) < 3: return
+        self.lst_model.append(val)
+
 
     def refresh_tree_view(self, this) -> None:
         """
